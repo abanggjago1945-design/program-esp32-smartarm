@@ -1,0 +1,919 @@
+<!DOCTYPE1 html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyek ESP32 - Kelompok</title>
+    <!-- Tailwind CSS CDN untuk styling modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Highlight.js untuk tampilan syntax code warna-warni -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/arduino.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen py-10 px-4 font-sans">
+
+    <div class="max-w-4xl mx-auto space-y-8">
+        
+        <!-- HEADER / JUDUL PROYEK -->
+        <header class="text-center bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+            <!-- EDIT JUDUL DAN SUBJUDUL PROYEK DI SINI -->
+            <h1 class="text-3xl font-extrabold text-blue-400 tracking-wide mb-2">
+                PROYEK ESP32: SMART ARM
+            </h1>
+            <p class="text-slate-400 text-sm">
+                Sistem Monitoring & Kontrol Berbasis Mikrokontroler ESP32
+            </p>
+        </header>
+
+        <!-- SECTION 1: ANGGOTA KELOMPOK -->
+        <section class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-700 pb-3">
+                <i data-lucide="users" class="text-blue-400"></i>
+                Anggota Kelompok
+            </h2>
+
+            <!-- DAFTAR ANGGOTA (Tambah/Edit div di bawah ini sesuai jumlah anggota) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <!-- Anggota 1 -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center font-bold text-lg">
+                        01
+                    </div>
+                    <div>
+                        <!-- Edit Nama & NIM/NIS -->
+                        <h3 class="font-semibold text-white">Dhika Dhani </h3>
+                        <p class="text-sm text-slate-400">XII TEI 1</p>
+                    </div>
+                </div>
+
+                <!-- Anggota 2 -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center font-bold text-lg">
+                        02
+                    </div>
+                    <div>
+                        <!-- Edit Nama & NIM/NIS -->
+                        <h3 class="font-semibold text-white">Alifah Rijal</h3>
+                        <p class="text-sm text-slate-400">XII TEI 1</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 2: KODE PROGRAM ESP32 -->
+        <section class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b border-slate-700 pb-3">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="code" class="text-emerald-400"></i>
+                    Program ESP32 (Arduino C++)
+                </h2>
+                <!-- Tombol Copy Code -->
+                <button onclick="copyCode()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-md">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                    <span id="copy-btn-text">Salin Kode</span>
+                </button>
+            </div>
+
+            <!-- Tampilan Kode C++ / Arduino -->
+            <div class="rounded-xl overflow-hidden border border-slate-700">
+                <pre class="m-0"><code id="esp32-code" class="language-cpp">
+/* =======================================================
+   PROGRAM ESP32
+   ======================================================= */
+
+#include &lt;WiFi.h&gt;
+#include &lt;WebServer.h&gt;
+#include &lt;ESP32Servo.h&gt;
+
+// --- UBAH DENGAN WIFI RUMAH / HOTSPOT HP KAMU ---
+const char* ssid = "DESKTOP11";
+const char* password = "11111111";
+
+WebServer server(80);
+
+// Pin Hardware
+#define SENSOR_PROXIMITY 18
+#define LED_CONVEYOR     25
+
+#define SERVO_BASE_PIN     17  // Servo 1
+#define SERVO_ELBOW_PIN    16  // Servo 2
+#define SERVO_SHOULDER_PIN 26  // Servo 3
+#define SERVO_GRIPPER_PIN  33  // Servo 4
+
+// Objek Servo
+Servo servoBase;      // Servo 1
+Servo servoElbow;     // Servo 2
+Servo servoShoulder;  // Servo 3
+Servo servoGripper;   // Servo 4
+
+// Variabel Status Hardware
+bool conveyorStatus = true;
+bool proximityStatus = false;
+bool isSortingProcess = false; 
+
+// Posisi Awal Sesuai Setup Contoh Kode Kamu
+int baseAngle = 0;       // Servo 1 = 0
+int elbowAngle = 30;     // Servo 2 = 30
+int shoulderAngle = 180; // Servo 3 = 180
+int gripperAngle = 20;   // Servo 4 = 20
+
+// Web UI dengan Library CDN Online
+const char HTML_PAGE[] PROGMEM = R"rawliteral(
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Industrial Visualizer - Collision-Free Arm & Gripper</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0d14;
+            --card-bg: #141722;
+            --accent-color: #00f2fe;
+            --accent-glow: rgba(0, 242, 254, 0.4);
+            --text-main: #f0f3f8;
+            --text-sub: #8a94a6;
+            --danger-color: #ff4757;
+            --success-color: #2ed573;
+            --warning-color: #ffa502;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .simulation-pane { flex: 2.2; min-width: 340px; }
+        .pane-title { 
+            font-size: 0.9rem; 
+            font-weight: 600; 
+            color: var(--text-sub); 
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 520px;
+            background: #05060a;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .status-pane {
+            flex: 1;
+            min-width: 280px;
+            background-color: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .status-card {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .status-value { font-size: 0.9rem; font-weight: 700; }
+        .status-off { color: var(--danger-color); }
+        .status-on { color: var(--success-color); }
+        .status-detected { color: var(--warning-color); animation: blink 0.8s infinite; }
+
+        .servo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .servo-item { 
+            background-color: rgba(0, 0, 0, 0.3); 
+            padding: 10px; 
+            border-radius: 8px; 
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .servo-label { color: var(--text-sub); font-size: 0.75rem; margin-bottom: 2px; }
+        .servo-angle { color: var(--accent-color); font-size: 1.1rem; font-weight: 700; }
+
+        .controls-container {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary { 
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); 
+            color: #0f111a; 
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        
+        .btn-secondary { 
+            background-color: rgba(255, 165, 2, 0.15); 
+            color: var(--warning-color);
+            border: 1px solid rgba(255, 165, 2, 0.3);
+        }
+        .btn-secondary:hover { background-color: rgba(255, 165, 2, 0.25); }
+        
+        .mode-badge {
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .bg-esp { background-color: rgba(46, 213, 115, 0.15); color: var(--success-color); border: 1px solid rgba(46, 213, 115, 0.3); }
+        .bg-sim { background-color: rgba(255, 165, 2, 0.15); color: var(--warning-color); border: 1px solid rgba(255, 165, 2, 0.3); }
+
+        @keyframes blink { 50% { opacity: 0.4; } }
+    </style>
+</head>
+<body>
+
+    <h1>Pemilah Metal vs Non-Metal (Anti-Collision Gripper)</h1>
+
+    <div class="main-container">
+        <div class="simulation-pane">
+            <div class="pane-title">
+                <span>3D Visualizer Studio</span>
+                <span style="font-size: 0.75rem; opacity: 0.7;">Rotate: Left Click | Pan: Right Click | Zoom: Scroll</span>
+            </div>
+            <div id="canvas-container"></div>
+        </div>
+
+        <div class="status-pane">
+            <div>
+                <span id="modeBadge" class="mode-badge bg-esp">MODE: ESP32 ONLINE</span>
+                <div class="section-title">Status Hardware</div>
+                <div class="status-card">
+                    <span>Conveyor</span>
+                    <span id="statConveyor" class="status-value status-off">OFF</span>
+                </div>
+                <div class="status-card">
+                    <span>Sensor Metal</span>
+                    <span id="statSensor" class="status-value status-off">CLEAR</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">Sudut Servo (Degrees)</div>
+                <div class="servo-grid">
+                    <div class="servo-item"><div class="servo-label">Base (S1)</div><div id="angBase" class="servo-angle">0°</div></div>
+                    <div class="servo-item"><div class="servo-label">Elbow (S2)</div><div id="angElbow" class="servo-angle">30°</div></div>
+                    <div class="servo-item"><div class="servo-label">Shoulder (S3)</div><div id="angShoulder" class="servo-angle">180°</div></div>
+                    <div class="servo-item"><div class="servo-label">Gripper (S4)</div><div id="angGripper" class="servo-angle">20°</div></div>
+                </div>
+            </div>
+
+            <div class="controls-container">
+                <button id="btnToggleMode" class="btn btn-primary">Ganti ke Mode Simulasi Offline</button>
+                <button id="btnTriggerSensor" class="btn btn-secondary" style="display: none;">Simulasi Deteksi Metal</button>
+                <button id="btnResetSim" class="btn btn-primary" style="display: none;">Reset Benda / Conveyor</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0c14);
+        scene.fog = new THREE.FogExp2(0x0a0c14, 0.018);
+
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(15, 12, 18);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.target.set(-1.5, 2.0, 1.5);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2 - 0.01;
+        controls.update();
+
+        const ambientLight = new THREE.AmbientLight(0xdde5ff, 0.5);
+        scene.add(ambientLight);
+
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        keyLight.position.set(12, 20, 15);
+        keyLight.castShadow = true;
+        keyLight.shadow.mapSize.width = 2048;
+        keyLight.shadow.mapSize.height = 2048;
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0x00f2fe, 0.5);
+        fillLight.position.set(-15, 10, -10);
+        scene.add(fillLight);
+
+        const gridHelper = new THREE.GridHelper(36, 36, 0x00f2fe, 0x1f2438);
+        gridHelper.position.y = -0.01;
+        scene.add(gridHelper);
+
+        const floorGeo = new THREE.PlaneGeometry(36, 36);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x0c0f1d, roughness: 0.8, metalness: 0.2 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x222633, roughness: 0.4, metalness: 0.8 });
+        const yellowIndustrialMat = new THREE.MeshStandardMaterial({ color: 0xf1c40f, roughness: 0.3, metalness: 0.3 });
+        const chromeMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.1, metalness: 0.95 });
+        const beltMat = new THREE.MeshStandardMaterial({ color: 0x151720, roughness: 0.9, metalness: 0.1 });
+        const redBinMat = new THREE.MeshStandardMaterial({ color: 0xe74c3c, roughness: 0.5, metalness: 0.2 });
+
+        const convGroup = new THREE.Group();
+        convGroup.position.set(-3, 0, 0);
+
+        const convFrame = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.5, 20), darkMetalMat);
+        convFrame.position.set(0, 1.8, 0);
+        convFrame.castShadow = true;
+        convGroup.add(convFrame);
+
+        const convBelt = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.08, 19.8), beltMat);
+        convBelt.position.set(0, 2.08, 0);
+        convGroup.add(convBelt);
+
+        [-1.5, 1.5].forEach(x => {
+            const rail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.3, 20), chromeMat);
+            rail.position.set(x, 2.25, 0);
+            convGroup.add(rail);
+        });
+
+        [-8, 8].forEach(z => {
+            const leg = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.8, 0.4), darkMetalMat);
+            leg.position.set(0, 0.9, z);
+            convGroup.add(leg);
+        });
+        scene.add(convGroup);
+
+        const sensorGroup = new THREE.Group();
+        sensorGroup.position.set(-3, 0, -3);
+
+        const archPillar1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 3.5, 0.2), darkMetalMat);
+        archPillar1.position.set(-1.7, 1.75, 0);
+        const archPillar2 = archPillar1.clone();
+        archPillar2.position.set(1.7, 1.75, 0);
+
+        const archTop = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.3, 0.4), darkMetalMat);
+        archTop.position.set(0, 3.5, 0);
+
+        const sensorHead = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.8, 32), chromeMat);
+        sensorHead.position.set(0, 3.0, 0);
+
+        const sensorLed = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), new THREE.MeshBasicMaterial({ color: 0x00f2fe }));
+        sensorLed.position.set(0, 3.45, 0);
+
+        const sensorBeam = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.05, 0.4, 1.0, 32, 1, true),
+            new THREE.MeshBasicMaterial({ color: 0x00f2fe, transparent: true, opacity: 0.3, side: THREE.DoubleSide })
+        );
+        sensorBeam.position.set(0, 2.3, 0);
+
+        sensorGroup.add(archPillar1, archPillar2, archTop, sensorHead, sensorLed, sensorBeam);
+        scene.add(sensorGroup);
+
+        const boxGeo = new THREE.BoxGeometry(0.9, 0.9, 0.9);
+        const boxMat = new THREE.MeshStandardMaterial({ color: 0xe0e6ed, metalness: 0.95, roughness: 0.1 });
+        const metalBox = new THREE.Mesh(boxGeo, boxMat);
+        metalBox.castShadow = true;
+        metalBox.position.set(-3, 2.57, -10);
+        scene.add(metalBox);
+
+        const binGroup = new THREE.Group();
+        binGroup.position.set(3.5, 0, 0);
+
+        const binOuter = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.8, 3.2), redBinMat);
+        binOuter.position.set(0, 0.9, 0);
+        binOuter.castShadow = true;
+
+        const binInner = new THREE.Mesh(new THREE.BoxGeometry(2.9, 1.7, 2.9), new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 }));
+        binInner.position.set(0, 1.0, 0);
+
+        binGroup.add(binOuter, binInner);
+        scene.add(binGroup);
+
+        const robotGroup = new THREE.Group();
+        robotGroup.position.set(0, 0, 0);
+        scene.add(robotGroup);
+
+        const robotBasePlate = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.8, 0.4, 32), darkMetalMat);
+        robotBasePlate.position.y = 0.2;
+        robotGroup.add(robotBasePlate);
+
+        const robotMotorBase = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 1.2, 32), yellowIndustrialMat);
+        robotMotorBase.position.y = 1.0;
+        robotGroup.add(robotMotorBase);
+
+        const jointBase = new THREE.Group();
+        jointBase.position.y = 1.6;
+        robotGroup.add(jointBase);
+
+        const shoulderTurret = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.0, 1.2), darkMetalMat);
+        shoulderTurret.position.y = 0.5;
+        jointBase.add(shoulderTurret);
+
+        const jointShoulder = new THREE.Group();
+        jointShoulder.position.set(0, 0.8, 0);
+        jointBase.add(jointShoulder);
+
+        const arm1Group = new THREE.Group();
+        const arm1Mesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3.2, 0.6), yellowIndustrialMat);
+        arm1Mesh.position.set(0, 1.6, 0);
+        arm1Mesh.castShadow = true;
+        arm1Group.add(arm1Mesh);
+        jointShoulder.add(arm1Group);
+
+        const jointElbow = new THREE.Group();
+        jointElbow.position.set(0, 3.2, 0);
+        jointShoulder.add(jointElbow);
+
+        const arm2Group = new THREE.Group();
+        const arm2Mesh = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.8, 0.5), yellowIndustrialMat);
+        arm2Mesh.position.set(0, 1.4, 0);
+        arm2Mesh.castShadow = true;
+        arm2Group.add(arm2Mesh);
+        jointElbow.add(arm2Group);
+
+        const wristMount = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.4, 16), darkMetalMat);
+        wristMount.position.set(0, 2.8, 0);
+        jointElbow.add(wristMount);
+
+        const jointGripper = new THREE.Group();
+        jointGripper.position.set(0, 2.6, 0);
+        jointElbow.add(jointGripper);
+
+        const gripPalm = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.18, 0.35), darkMetalMat);
+        gripPalm.position.y = -0.09;
+        jointGripper.add(gripPalm);
+
+        const fingerMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.2, metalness: 0.8 });
+
+        const fingerLeft = new THREE.Group();
+        const fLeftMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.6, 0.2), fingerMat);
+        fLeftMesh.position.set(0, -0.3, 0); 
+        fingerLeft.add(fLeftMesh);
+        fingerLeft.position.set(-0.25, -0.09, 0);
+        jointGripper.add(fingerLeft);
+
+        const fingerRight = new THREE.Group();
+        const fRightMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.6, 0.2), fingerMat);
+        fRightMesh.position.set(0, -0.3, 0); 
+        fingerRight.add(fRightMesh);
+        fingerRight.position.set(0.25, -0.09, 0);
+        jointGripper.add(fingerRight);
+
+        const ui = {
+            conv: document.getElementById('statConveyor'),
+            sens: document.getElementById('statSensor'),
+            base: document.getElementById('angBase'),
+            shld: document.getElementById('angShoulder'),
+            elbw: document.getElementById('angElbow'),
+            grip: document.getElementById('angGripper'),
+            badge: document.getElementById('modeBadge'),
+            btnToggle: document.getElementById('btnToggleMode'),
+            btnTrigger: document.getElementById('btnTriggerSensor'),
+            btnReset: document.getElementById('btnResetSim')
+        };
+
+        let useESP = true;
+        let isSimulatingAction = false;
+        let isHoldingObject = false;
+
+        let hwState = { conveyor: true, proximity: false };
+        
+        let angles = { base: 0, shoulder: 180, elbow: 30, gripper: 20 };
+        let targetAngles = { ...angles };
+        
+        const lerpSpeed = 0.04;
+
+        setInterval(() => {
+            if (!useESP) return;
+
+            fetch('/status')
+                .then(res => res.json())
+                .then(data => {
+                    hwState.conveyor = data.conveyor;
+                    hwState.proximity = data.proximity;
+
+                    targetAngles.base = data.base;
+                    targetAngles.shoulder = data.shoulder;
+                    targetAngles.elbow = data.elbow;
+                    targetAngles.gripper = data.gripper;
+
+                    updateUI();
+                })
+                .catch(() => {});
+        }, 100);
+
+        function updateUI() {
+            ui.conv.innerText = hwState.conveyor ? "RUNNING" : "STOPPED";
+            ui.conv.className = hwState.conveyor ? "status-value status-on" : "status-value status-off";
+
+            ui.sens.innerText = hwState.proximity ? "METAL DETECTED" : "CLEAR";
+            ui.sens.className = hwState.proximity ? "status-value status-detected" : "status-value status-on";
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            controls.update();
+
+            angles.base += (targetAngles.base - angles.base) * lerpSpeed;
+            angles.shoulder += (targetAngles.shoulder - angles.shoulder) * lerpSpeed;
+            angles.elbow += (targetAngles.elbow - angles.elbow) * lerpSpeed;
+            angles.gripper += (targetAngles.gripper - angles.gripper) * lerpSpeed;
+
+            ui.base.innerText = `${Math.round(angles.base)}°`;
+            ui.shld.innerText = `${Math.round(angles.shoulder)}°`;
+            ui.elbw.innerText = `${Math.round(angles.elbow)}°`;
+            ui.grip.innerText = `${Math.round(angles.gripper)}°`;
+
+            jointBase.rotation.y = (90 - angles.base) * Math.PI / 180;
+
+            const radShoulder = (angles.shoulder - 90) * Math.PI / 180;
+            const radElbow = (angles.elbow - 90) * Math.PI / 180;
+
+            jointShoulder.rotation.x = radShoulder;
+            jointElbow.rotation.x = radElbow;
+
+            let targetGripperPitch = -(radShoulder + radElbow);
+            const maxPitchLimit = Math.PI * 0.61;
+            targetGripperPitch = Math.max(-maxPitchLimit, Math.min(maxPitchLimit, targetGripperPitch));
+            
+            jointGripper.rotation.x = targetGripperPitch;
+
+            const gripSpread = (angles.gripper / 90) * 0.25;
+            fingerLeft.position.x = -0.12 - gripSpread;
+            fingerRight.position.x = 0.12 + gripSpread;
+
+            if (isHoldingObject) {
+                const worldPos = new THREE.Vector3();
+                jointGripper.getWorldPosition(worldPos);
+                metalBox.position.copy(worldPos);
+                metalBox.position.y -= 0.7; 
+            } else if (hwState.conveyor) {
+                metalBox.position.z += 0.08;
+                if (metalBox.position.z > 10) metalBox.position.z = -10;
+            } else if (hwState.proximity && !isHoldingObject) {
+                metalBox.position.set(-3, 2.57, -3);
+            }
+
+            if (hwState.proximity) {
+                sensorLed.material.color.setHex(0xffa502);
+                sensorBeam.material.color.setHex(0xffa502);
+                sensorBeam.material.opacity = 0.8;
+            } else {
+                sensorLed.material.color.setHex(0x00f2fe);
+                sensorBeam.material.color.setHex(0x00f2fe);
+                sensorBeam.material.opacity = 0.25;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        ui.btnToggle.addEventListener('click', () => {
+            useESP = !useESP;
+            if(useESP) {
+                ui.badge.innerText = "MODE: ESP32 ONLINE";
+                ui.badge.className = "mode-badge bg-esp";
+                ui.btnToggle.innerText = "Ganti ke Mode Simulasi Offline";
+                ui.btnTrigger.style.display = "none";
+                ui.btnReset.style.display = "none";
+            } else {
+                ui.badge.innerText = "MODE: SIMULASI OFFLINE";
+                ui.badge.className = "mode-badge bg-sim";
+                ui.btnToggle.innerText = "Ganti ke Mode ESP32 Real";
+                ui.btnTrigger.style.display = "block";
+                ui.btnReset.style.display = "block";
+                resetOfflineSim();
+            }
+        });
+
+        ui.btnTrigger.addEventListener('click', () => {
+            if(useESP || isSimulatingAction) return;
+            runOfflineSequence();
+        });
+
+        ui.btnReset.addEventListener('click', () => {
+            if(useESP) return;
+            resetOfflineSim();
+        });
+
+        function resetOfflineSim() {
+            isSimulatingAction = false;
+            isHoldingObject = false;
+            hwState.conveyor = true;
+            hwState.proximity = false;
+            metalBox.position.set(-3, 2.57, -10);
+            targetAngles = { base: 0, shoulder: 180, elbow: 30, gripper: 20 };
+            updateUI();
+        }
+
+        async function runOfflineSequence() {
+            isSimulatingAction = true;
+            hwState.conveyor = false;
+            hwState.proximity = true;
+            metalBox.position.set(-3, 2.57, -3);
+            updateUI();
+
+            const delay = ms => new Promise(res => setTimeout(res, ms));
+
+            targetAngles.base = 90; await delay(800);
+            targetAngles.gripper = 90; await delay(800);
+            targetAngles.elbow = 90; await delay(800);
+            targetAngles.shoulder = 50; await delay(800);
+            targetAngles.gripper = 115; await delay(800);
+            isHoldingObject = true;
+            
+            targetAngles.shoulder = 90; await delay(800);
+            targetAngles.base = 0; await delay(800);
+            targetAngles.shoulder = 50; await delay(800);
+            targetAngles.gripper = 90; await delay(800);
+            isHoldingObject = false;
+            metalBox.position.set(3.5, 0.9, 0);
+            
+            targetAngles.shoulder = 90; await delay(800);
+            targetAngles.elbow = 30; await delay(800);
+
+            isSimulatingAction = false;
+            hwState.conveyor = true;
+            hwState.proximity = false;
+            metalBox.position.set(-3, 2.57, -10);
+            updateUI();
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    </script>
+</body>
+</html>
+)rawliteral";
+
+void handleRoot() {
+  server.send(200, "text/html", HTML_PAGE);
+}
+
+void handleStatus() {
+  String json = "{";
+  json += "\"conveyor\":" + String(conveyorStatus ? "true" : "false") + ",";
+  json += "\"proximity\":" + String(proximityStatus ? "true" : "false") + ",";
+  json += "\"base\":" + String(baseAngle) + ",";
+  json += "\"shoulder\":" + String(shoulderAngle) + ",";
+  json += "\"elbow\":" + String(elbowAngle) + ",";
+  json += "\"gripper\":" + String(gripperAngle);
+  json += "}";
+
+  server.send(200, "application/json", json);
+}
+
+// --- FUNGSI PENGGERAK SERVO TUNGGAL SECARA HALUS (SMOOTH WRITE) ---
+void smoothWrite(Servo &s, int &currentAngle, int targetAngle, int speedDelay = 15) {
+  int step = (currentAngle < targetAngle) ? 1 : -1;
+  while (currentAngle != targetAngle) {
+    currentAngle += step;
+    s.write(currentAngle);
+    
+    // Tetap layani request Web UI agar simulasi 3D tidak freeze
+    server.handleClient();
+    delay(speedDelay);
+  }
+}
+
+// --- URUTAN GERAKAN PEMILAHAN LOGAM SESUAI LOGIKA KAMU ---
+void runSortingSequence() {
+  isSortingProcess = true;
+
+  // 1. Matikan Conveyor
+  conveyorStatus = false;
+  digitalWrite(LED_CONVEYOR, LOW);
+  delay(500);
+
+  // Servo 1 gerak ke 90
+  smoothWrite(servoBase, baseAngle, 90);
+  delay(800);
+
+  // Servo 4 gerak ke 90
+  smoothWrite(servoGripper, gripperAngle, 90);
+  delay(800);
+
+  // Servo 2 gerak ke 90
+  smoothWrite(servoElbow, elbowAngle, 90);
+  delay(800);
+
+  // Servo 3 gerak ke 50
+  smoothWrite(servoShoulder, shoulderAngle, 50);
+  delay(800);
+
+  // Servo 4 gerak ke 115
+  smoothWrite(servoGripper, gripperAngle, 115);
+  delay(800);
+
+  // Servo 3 gerak ke 90
+  smoothWrite(servoShoulder, shoulderAngle, 90);
+  delay(800);
+
+  // Servo 1 gerak ke 0 (Kembali / Putar)
+  smoothWrite(servoBase, baseAngle, 0);
+  delay(800);
+
+  // Servo 3 gerak ke 50
+  smoothWrite(servoShoulder, shoulderAngle, 50);
+  delay(800);
+
+  // Servo 4 gerak ke 90
+  smoothWrite(servoGripper, gripperAngle, 90);
+  delay(800);
+
+  // Servo 3 gerak ke 90
+  smoothWrite(servoShoulder, shoulderAngle, 90);
+  delay(800);
+
+  // Servo 2 gerak ke 30
+  smoothWrite(servoElbow, elbowAngle, 30);
+  delay(800);
+
+  // 2. Jalankan Kembali Conveyor
+  conveyorStatus = true;
+  digitalWrite(LED_CONVEYOR, HIGH);
+
+  isSortingProcess = false;
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(SENSOR_PROXIMITY, INPUT_PULLUP);
+  pinMode(LED_CONVEYOR, OUTPUT);
+  digitalWrite(LED_CONVEYOR, HIGH);
+
+  ESP32PWM::allocateTimer(0);
+  ESP32PWM::allocateTimer(1);
+  ESP32PWM::allocateTimer(2);
+  ESP32PWM::allocateTimer(3);
+
+  servoBase.setPeriodHertz(50);
+  servoElbow.setPeriodHertz(50);
+  servoShoulder.setPeriodHertz(50);
+  servoGripper.setPeriodHertz(50);
+
+  servoBase.attach(SERVO_BASE_PIN, 500, 2400);
+  servoElbow.attach(SERVO_ELBOW_PIN, 500, 2400);
+  servoShoulder.attach(SERVO_SHOULDER_PIN, 500, 2400);
+  servoGripper.attach(SERVO_GRIPPER_PIN, 500, 2400);
+
+  // Set Posisi Awal Sesuai Setup Contoh Kamu
+  servoBase.write(baseAngle);         // 0
+  servoElbow.write(elbowAngle);       // 30
+  servoShoulder.write(shoulderAngle); // 180
+  servoGripper.write(gripperAngle);   // 20
+
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  
+  Serial.println("\nWiFi Connected!");
+  Serial.print("Buka IP ini di Browser: ");
+  Serial.println(WiFi.localIP());
+
+  server.on("/", handleRoot);
+  server.on("/status", handleStatus);
+  server.begin();
+  Serial.println("HTTP Server Started");
+}
+
+void loop() {
+  server.handleClient();
+
+  if (!isSortingProcess) {
+    bool isMetalDetected = (digitalRead(SENSOR_PROXIMITY) == LOW);
+    proximityStatus = isMetalDetected;
+
+    if (isMetalDetected) {
+      runSortingSequence();
+    }
+  }
+}
+                </code></pre>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="text-center text-xs text-slate-500 py-4">
+            &copy; 2026 Proyek Kelompok ESP32.
+        </footer>
+
+    </div>
+
+    <!-- SCRIPT JAVASCRIPT UTAMA -->
+    <script>
+        // Inisialisasi Ikon Lucide
+        lucide.createIcons();
+
+        // Inisialisasi Syntax Highlighter (Highlight.js)
+        hljs.highlightAll();
+
+        // Fungsi Salin Kode
+        function copyCode() {
+            const codeText = document.getElementById('esp32-code').innerText;
+            const btnText = document.getElementById('copy-btn-text');
+            
+            navigator.clipboard.writeText(codeText).then(() => {
+                btnText.innerText = "Tersalin!";
+                setTimeout(() => {
+                    btnText.innerText = "Salin Kode";
+                }, 2000);
+            }).catch(err => {
+                console.error('Gagal menyalin kode: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
